@@ -1,0 +1,91 @@
+package com.jocata.ordermanagementsystem.services.impl;
+
+import com.jocata.ordermanagementsystem.daos.CustomerDao;
+import com.jocata.ordermanagementsystem.daos.impl.CustomerDaoImpl;
+import com.jocata.ordermanagementsystem.entities.CustomerDetails;
+import com.jocata.ordermanagementsystem.forms.CustomerForm;
+import com.jocata.ordermanagementsystem.services.CustomerService;
+
+public class CustomerServiceImpl implements CustomerService {
+
+    CustomerDao customerDao=new CustomerDaoImpl();
+
+    @Override
+    public CustomerForm saveCustomer(CustomerForm customer) {
+        if(isValidate(customer)) {
+            CustomerDetails customerDetails = formToEntity(customer);
+            CustomerDetails customerResponse = customerDao.saveCustomer(customerDetails);
+            return entityToForm(customerResponse);
+        }
+        throw new IllegalArgumentException("Customer Details are missing..");
+    }
+
+    @Override
+    public CustomerForm getCustomer(Integer customerId) {
+        CustomerDetails customer = customerDao.getCustomer(customerId);
+        return entityToForm(customer);
+    }
+
+    @Override
+    public CustomerForm updateCustomer(CustomerForm customer) {
+        if(isValidate(customer)) {
+            CustomerForm existingCustomer = getCustomer(Integer.valueOf(customer.getCustomerId()));
+
+            existingCustomer.setCustomerName(customer.getCustomerName());
+            existingCustomer.setEmail(customer.getEmail());
+            existingCustomer.setPassword(customer.getPassword());
+            existingCustomer.setAddress(customer.getAddress());
+
+            CustomerDetails customerDetails = new CustomerDetails();
+            customerDetails.setCustomerId(Integer.valueOf(existingCustomer.getCustomerId()));
+            customerDetails.setCustomerName(existingCustomer.getCustomerName());
+            customerDetails.setEmail(existingCustomer.getEmail());
+            customerDetails.setPassword(existingCustomer.getPassword());
+            customerDetails.setAddress(existingCustomer.getAddress());
+
+            CustomerDetails updatedCustomer = customerDao.updateCustomer(customerDetails);
+            return entityToForm(updatedCustomer);
+        }
+        throw new IllegalArgumentException("Customer Details are missing..");
+    }
+
+    @Override
+    public String deleteCustomer(Integer customerId) {
+        customerDao.deleteCustomer(customerId);
+        return "Customer Deleted Successfully";
+    }
+
+    private static CustomerDetails formToEntity(CustomerForm customer) {
+        CustomerDetails customerDetails=new CustomerDetails();
+        customerDetails.setCustomerId(generateRandomId());
+        customerDetails.setCustomerName(customer.getCustomerName());
+        customerDetails.setEmail(customer.getEmail());
+        customerDetails.setPassword(customer.getPassword());
+        customerDetails.setAddress(customer.getAddress());
+        return  customerDetails;
+    }
+
+    private static CustomerForm entityToForm(CustomerDetails customerDetails) {
+        CustomerForm customerForm = new CustomerForm();
+        customerForm.setCustomerId(String.valueOf(customerDetails.getCustomerId()));
+        customerForm.setCustomerName(customerDetails.getCustomerName());
+        customerForm.setEmail(customerDetails.getEmail());
+        customerForm.setPassword(customerDetails.getPassword());
+        customerForm.setAddress(customerDetails.getAddress());
+        return customerForm;
+    }
+
+    private static int generateRandomId() {
+        return (int) (Math.random() * 1000000);
+    }
+
+    private boolean isValidate(CustomerForm customerForm){
+        if((customerForm.getCustomerName()!=null && !customerForm.getCustomerName().isBlank())||
+                (customerForm.getEmail()!=null && !customerForm.getEmail().isBlank()) ||
+                (customerForm.getPassword()!=null && !customerForm.getPassword().isBlank())||
+                (customerForm.getAddress()!=null && !customerForm.getAddress().isEmpty())){
+            return true;
+        }
+        return false;
+    }
+}
