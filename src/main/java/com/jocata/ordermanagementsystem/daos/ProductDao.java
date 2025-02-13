@@ -7,9 +7,13 @@ import java.util.List;
 public interface ProductDao {
 
     ProductDetails saveProduct(ProductDetails productDetails);
+
     ProductDetails getProduct(Integer productId);
+
     List<ProductDetails> getAllProducts();
+
     ProductDetails updateProduct(ProductDetails productDetails);
+
     void deleteProduct(Integer productId);
 
 }

@@ -1,7 +1,6 @@
 package com.jocata.ordermanagementsystem.services.impl;
 
 import com.jocata.ordermanagementsystem.daos.OrderDao;
-import com.jocata.ordermanagementsystem.daos.impl.OrderDaoImpl;
 import com.jocata.ordermanagementsystem.entities.CustomerDetails;
 import com.jocata.ordermanagementsystem.entities.OrderDetails;
 import com.jocata.ordermanagementsystem.entities.ProductDetails;
@@ -12,15 +11,27 @@ import com.jocata.ordermanagementsystem.services.InventoryService;
 import com.jocata.ordermanagementsystem.services.OrderService;
 import com.jocata.ordermanagementsystem.services.PaymentService;
 import com.jocata.ordermanagementsystem.util.OrderStatus;
+import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
+@Service
 public class OrderServiceImpl implements OrderService {
 
-    OrderDao orderDao = new OrderDaoImpl();
-    PaymentService paymentService = new PaymentServiceImpl();
-    InventoryService inventoryService = new InventoryServiceImpl();
+    private final OrderDao orderDao;
+    private final PaymentService paymentService;
+    private final InventoryService inventoryService;
+    private final OrderProcessor orderProcessor;
+
+    public OrderServiceImpl(OrderDao orderDao, PaymentService paymentService, InventoryService inventoryService, OrderProcessor orderProcessor) {
+        this.orderDao = orderDao;
+        this.paymentService = paymentService;
+        this.inventoryService = inventoryService;
+        this.orderProcessor = orderProcessor;
+    }
 
     @Override
     public OrderForm createOrder(CustomerForm customer, List<ProductForm> products) {
@@ -35,7 +46,7 @@ public class OrderServiceImpl implements OrderService {
                 ProductDetails product = new ProductDetails();
                 product.setProductId(Integer.valueOf(productForm.getProductId()));
                 product.setProductName(productForm.getProductName());
-               // product.setProductPrice(Double.valueOf(productForm.getProductPrice()));
+                product.setProductPrice(new BigDecimal(productForm.getProductPrice()));
                 if (!inventoryService.checkStock(product)) {
                     throw new IllegalArgumentException("Product " + product.getProductName() + " is out of stock!");
                 }
@@ -43,7 +54,7 @@ public class OrderServiceImpl implements OrderService {
             }
 
             OrderDetails order = new OrderDetails();
-            order.setOrderId(generateRandomId());
+            order.setOrderTransactionId(UUID.randomUUID().toString());
             order.setCustomer(customerDetails);
             order.setProducts(productDetailsList);
             order.setStatus(OrderStatus.PENDING);
@@ -54,7 +65,6 @@ public class OrderServiceImpl implements OrderService {
                 inventoryService.reduceStock(product);
             }
 
-            OrderProcessor orderProcessor = new OrderProcessor();
             orderProcessor.setOrder(createdOrder);
             orderProcessor.setPaymentService(paymentService);
             orderProcessor.start();
@@ -75,7 +85,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<OrderForm> getCustomerAllOrders(Integer customerId) {
-        if(customerId!=null) {
+        if (customerId != null) {
             List<OrderDetails> orderDetails = orderDao.customersAllOrders(customerId);
             List<OrderForm> forms = new ArrayList<>();
             for (OrderDetails details : orderDetails) {
@@ -104,7 +114,7 @@ public class OrderServiceImpl implements OrderService {
                 ProductDetails product = new ProductDetails();
                 product.setProductId(Integer.parseInt(productForm.getProductId()));
                 product.setProductName(productForm.getProductName());
-                //product.setProductPrice(Double.parseDouble(productForm.getProductPrice()));
+                product.setProductPrice(new BigDecimal(productForm.getProductPrice()));
                 updatedProducts.add(product);
             }
 
@@ -155,10 +165,5 @@ public class OrderServiceImpl implements OrderService {
 
         return orderForm;
     }
-
-    private static int generateRandomId() {
-        return (int) (Math.random() * 1000000);
-    }
-
 
 }

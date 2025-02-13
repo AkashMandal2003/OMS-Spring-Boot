@@ -2,45 +2,53 @@ package com.jocata.ordermanagementsystem.controllers;
 
 import com.jocata.ordermanagementsystem.forms.OrderForm;
 import com.jocata.ordermanagementsystem.services.OrderService;
-import com.jocata.ordermanagementsystem.services.impl.OrderServiceImpl;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@RestController
+@RequestMapping("/api/v1/orders")
 public class OrderController {
 
-     OrderService orderService=new OrderServiceImpl();
+    private final OrderService orderService;
 
-    public OrderForm createOrder(OrderForm orderForm) {
-        if(orderForm!=null) {
+    public OrderController(OrderService orderService) {
+        this.orderService = orderService;
+    }
+
+    @PostMapping("/createOrder")
+    public OrderForm createOrder(@RequestBody OrderForm orderForm) {
+        if (orderForm != null) {
             return orderService.createOrder(orderForm.getCustomer(), orderForm.getProducts());
         }
         throw new IllegalArgumentException("Details are missing..");
     }
 
-    public OrderForm updateOrder(OrderForm orderForm){
-        if(orderForm!=null){
+    @PutMapping("/update")
+    public OrderForm updateOrder(@RequestBody OrderForm orderForm) {
+        if (orderForm != null) {
             return orderService.updateOrder(orderForm);
         }
         throw new IllegalArgumentException("Details are missing..");
     }
 
-    public OrderForm getOrderById(Integer orderId){
-        if(orderId!=null){
+    public OrderForm getOrderById(@PathVariable Integer orderId) {
+        if (orderId != null) {
             return orderService.getOrder(orderId);
         }
         throw new IllegalArgumentException("Details are missing..");
     }
 
-    public void cancelOrder(Integer orderId){
-        if(orderId!=null){
+    @PutMapping("/{orderId}")
+    public void cancelOrder(@PathVariable Integer orderId) {
+        if (orderId != null) {
             orderService.cancelOrder(orderId);
-            return;
         }
-        throw new IllegalArgumentException("Details are missing..");
     }
 
-    public List<OrderForm> getCustomerAllOrders(OrderForm orderForm){
-        return orderService.getCustomerAllOrders(Integer.valueOf(orderForm.getCustomer().getCustomerId()));
+    @GetMapping("/{customerId}/allOrders")
+    public List<OrderForm> getCustomerAllOrders(@PathVariable Integer customerId) {
+        return orderService.getCustomerAllOrders(customerId);
     }
 
 }

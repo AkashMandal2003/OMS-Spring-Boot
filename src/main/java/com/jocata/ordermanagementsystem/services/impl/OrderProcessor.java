@@ -1,18 +1,26 @@
 package com.jocata.ordermanagementsystem.services.impl;
 
+import com.jocata.ordermanagementsystem.daos.OrderDao;
 import com.jocata.ordermanagementsystem.entities.OrderDetails;
 import com.jocata.ordermanagementsystem.services.PaymentService;
 import com.jocata.ordermanagementsystem.util.OrderStatus;
+import org.springframework.stereotype.Component;
 
 import java.util.logging.Logger;
 
-public class
-OrderProcessor extends Thread{
+@Component
+public class OrderProcessor extends Thread{
 
     private static final Logger logger=Logger.getLogger(OrderProcessor.class.getName());
 
+    private final OrderDao orderDao;
+
     private OrderDetails order;
     private PaymentService paymentService;
+
+    public OrderProcessor(OrderDao orderDao) {
+        this.orderDao = orderDao;
+    }
 
     @Override
     public void run() {
@@ -27,7 +35,7 @@ OrderProcessor extends Thread{
         if (paymentSuccessful) {
             logger.info("Order ID: " + order.getOrderId() + " has been paid.");
             order.setStatus(OrderStatus.SHIPPED);
-            //InMemoryOrders.updateOrderStatus(order.getOrderId(),OrderStatus.SHIPPED);
+            orderDao.updateOrder(order);
         } else {
             logger.info("Payment failed for Order ID: " + order.getOrderId());
         }

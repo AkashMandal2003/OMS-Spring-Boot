@@ -1,14 +1,21 @@
 package com.jocata.ordermanagementsystem.services.impl;
 
 import com.jocata.ordermanagementsystem.daos.CustomerDao;
-import com.jocata.ordermanagementsystem.daos.impl.CustomerDaoImpl;
 import com.jocata.ordermanagementsystem.entities.CustomerDetails;
 import com.jocata.ordermanagementsystem.forms.CustomerForm;
 import com.jocata.ordermanagementsystem.services.CustomerService;
+import org.springframework.stereotype.Service;
 
+import java.util.concurrent.ThreadLocalRandom;
+
+@Service
 public class CustomerServiceImpl implements CustomerService {
 
-    CustomerDao customerDao=new CustomerDaoImpl();
+    private final CustomerDao customerDao;
+
+    public CustomerServiceImpl(CustomerDao customerDao) {
+        this.customerDao = customerDao;
+    }
 
     @Override
     public CustomerForm saveCustomer(CustomerForm customer) {
@@ -24,6 +31,15 @@ public class CustomerServiceImpl implements CustomerService {
     public CustomerForm getCustomer(Integer customerId) {
         CustomerDetails customer = customerDao.getCustomer(customerId);
         return entityToForm(customer);
+    }
+
+    @Override
+    public CustomerForm getCustomer(String email, String password){
+        if((email!=null && !email.isBlank())||(password!=null && !password.isBlank())){
+            CustomerDetails customerByEmailAndPassword = customerDao.getCustomerByEmailAndPassword(email, password);
+            return entityToForm(customerByEmailAndPassword);
+        }
+        throw new IllegalArgumentException("Invalid Details..");
     }
 
     @Override
@@ -57,7 +73,6 @@ public class CustomerServiceImpl implements CustomerService {
 
     private static CustomerDetails formToEntity(CustomerForm customer) {
         CustomerDetails customerDetails=new CustomerDetails();
-        customerDetails.setCustomerId(generateRandomId());
         customerDetails.setCustomerName(customer.getCustomerName());
         customerDetails.setEmail(customer.getEmail());
         customerDetails.setPassword(customer.getPassword());
@@ -75,17 +90,10 @@ public class CustomerServiceImpl implements CustomerService {
         return customerForm;
     }
 
-    private static int generateRandomId() {
-        return (int) (Math.random() * 1000000);
-    }
-
     private boolean isValidate(CustomerForm customerForm){
-        if((customerForm.getCustomerName()!=null && !customerForm.getCustomerName().isBlank())||
-                (customerForm.getEmail()!=null && !customerForm.getEmail().isBlank()) ||
-                (customerForm.getPassword()!=null && !customerForm.getPassword().isBlank())||
-                (customerForm.getAddress()!=null && !customerForm.getAddress().isEmpty())){
-            return true;
-        }
-        return false;
+        return (customerForm.getCustomerName() != null && !customerForm.getCustomerName().isBlank()) ||
+                (customerForm.getEmail() != null && !customerForm.getEmail().isBlank()) ||
+                (customerForm.getPassword() != null && !customerForm.getPassword().isBlank()) ||
+                (customerForm.getAddress() != null && !customerForm.getAddress().isEmpty());
     }
 }
