@@ -29,8 +29,14 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public CustomerForm getCustomer(Integer customerId) {
-        CustomerDetails customer = customerDao.getCustomer(customerId);
-        return entityToForm(customer);
+        if(customerId!=null) {
+            CustomerDetails customer = customerDao.getCustomer(customerId);
+            if (customer!=null){
+                return entityToForm(customer);
+            }
+            throw new IllegalArgumentException("Customer Not Found");
+        }
+        throw new IllegalArgumentException("Customer Id is not Valid");
     }
 
     @Override

@@ -4,11 +4,11 @@ import com.jocata.ordermanagementsystem.daos.OrderDao;
 import com.jocata.ordermanagementsystem.entities.OrderDetails;
 import com.jocata.ordermanagementsystem.services.PaymentService;
 import com.jocata.ordermanagementsystem.util.OrderStatus;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.logging.Logger;
 
-@Component
+@Service
 public class OrderProcessor extends Thread{
 
     private static final Logger logger=Logger.getLogger(OrderProcessor.class.getName());

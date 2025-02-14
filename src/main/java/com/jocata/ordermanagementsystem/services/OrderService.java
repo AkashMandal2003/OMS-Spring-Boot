@@ -13,7 +13,5 @@ public interface OrderService {
 
     List<OrderForm> getCustomerAllOrders(Integer customerId);
 
-    OrderForm updateOrder(OrderForm updatedOrderForm);
-
     void cancelOrder(Integer orderId);
 }

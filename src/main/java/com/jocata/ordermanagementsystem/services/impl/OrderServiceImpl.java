@@ -1,6 +1,8 @@
 package com.jocata.ordermanagementsystem.services.impl;
 
+import com.jocata.ordermanagementsystem.daos.CustomerDao;
 import com.jocata.ordermanagementsystem.daos.OrderDao;
+import com.jocata.ordermanagementsystem.daos.ProductDao;
 import com.jocata.ordermanagementsystem.entities.CustomerDetails;
 import com.jocata.ordermanagementsystem.entities.OrderDetails;
 import com.jocata.ordermanagementsystem.entities.ProductDetails;
@@ -13,7 +15,6 @@ import com.jocata.ordermanagementsystem.services.PaymentService;
 import com.jocata.ordermanagementsystem.util.OrderStatus;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -25,28 +26,26 @@ public class OrderServiceImpl implements OrderService {
     private final PaymentService paymentService;
     private final InventoryService inventoryService;
     private final OrderProcessor orderProcessor;
+    private final CustomerDao customerDao;
+    private final ProductDao productDao;
 
-    public OrderServiceImpl(OrderDao orderDao, PaymentService paymentService, InventoryService inventoryService, OrderProcessor orderProcessor) {
+    public OrderServiceImpl(OrderDao orderDao, PaymentService paymentService, InventoryService inventoryService, OrderProcessor orderProcessor, CustomerDao customerDao, ProductDao productDao) {
         this.orderDao = orderDao;
         this.paymentService = paymentService;
         this.inventoryService = inventoryService;
         this.orderProcessor = orderProcessor;
+        this.customerDao = customerDao;
+        this.productDao = productDao;
     }
 
     @Override
     public OrderForm createOrder(CustomerForm customer, List<ProductForm> products) {
         if (customer != null && products != null) {
-            CustomerDetails customerDetails = new CustomerDetails();
-            customerDetails.setCustomerId(Integer.valueOf(customer.getCustomerId()));
-            customerDetails.setCustomerName(customer.getCustomerName());
-            customerDetails.setEmail(customer.getEmail());
+            CustomerDetails customerDetails = customerDao.getCustomer(Integer.valueOf(customer.getCustomerId()));
 
             List<ProductDetails> productDetailsList = new ArrayList<>();
             for (ProductForm productForm : products) {
-                ProductDetails product = new ProductDetails();
-                product.setProductId(Integer.valueOf(productForm.getProductId()));
-                product.setProductName(productForm.getProductName());
-                product.setProductPrice(new BigDecimal(productForm.getProductPrice()));
+                ProductDetails product = productDao.getProduct(Integer.valueOf(productForm.getProductId()));
                 if (!inventoryService.checkStock(product)) {
                     throw new IllegalArgumentException("Product " + product.getProductName() + " is out of stock!");
                 }
@@ -96,37 +95,6 @@ public class OrderServiceImpl implements OrderService {
         throw new IllegalArgumentException("Customer id is missing...");
     }
 
-    @Override
-    public OrderForm updateOrder(OrderForm updatedOrderForm) {
-        if (updatedOrderForm != null) {
-            OrderDetails existingOrder = orderDao.getOrderById(Integer.valueOf(updatedOrderForm.getOrderId()));
-            if (existingOrder == null) {
-                throw new IllegalArgumentException("Order ID " + updatedOrderForm.getOrderId() + " not found.");
-            }
-
-            CustomerDetails customer = new CustomerDetails();
-            customer.setCustomerId(Integer.valueOf(updatedOrderForm.getCustomer().getCustomerId()));
-            customer.setCustomerName(updatedOrderForm.getCustomer().getCustomerName());
-            customer.setEmail(updatedOrderForm.getCustomer().getEmail());
-
-            List<ProductDetails> updatedProducts = new ArrayList<>();
-            for (ProductForm productForm : updatedOrderForm.getProducts()) {
-                ProductDetails product = new ProductDetails();
-                product.setProductId(Integer.parseInt(productForm.getProductId()));
-                product.setProductName(productForm.getProductName());
-                product.setProductPrice(new BigDecimal(productForm.getProductPrice()));
-                updatedProducts.add(product);
-            }
-
-            existingOrder.setCustomer(customer);
-            existingOrder.setProducts(updatedProducts);
-            existingOrder.setStatus(OrderStatus.PENDING);
-
-            orderDao.updateOrder(existingOrder);
-            return toOrderForm(existingOrder);
-        }
-        throw new IllegalArgumentException("Check Details, Some fields are missing...");
-    }
 
     @Override
     public void cancelOrder(Integer orderId) {
@@ -151,6 +119,7 @@ public class OrderServiceImpl implements OrderService {
         customerForm.setCustomerId(String.valueOf(orderDetails.getCustomer().getCustomerId()));
         customerForm.setCustomerName(orderDetails.getCustomer().getCustomerName());
         customerForm.setEmail(orderDetails.getCustomer().getEmail());
+        customerForm.setAddress(orderDetails.getCustomer().getAddress());
         orderForm.setCustomer(customerForm);
 
         List<ProductForm> productForms = new ArrayList<>();
@@ -159,6 +128,8 @@ public class OrderServiceImpl implements OrderService {
             productForm.setProductId(String.valueOf(product.getProductId()));
             productForm.setProductName(product.getProductName());
             productForm.setProductPrice(String.valueOf(product.getProductPrice()));
+            productForm.setProductDescription(product.getProductDescription());
+            productForm.setProductCategory(product.getProductCategory());
             productForms.add(productForm);
         }
         orderForm.setProducts(productForms);

@@ -24,14 +24,7 @@ public class OrderController {
         throw new IllegalArgumentException("Details are missing..");
     }
 
-    @PutMapping("/update")
-    public OrderForm updateOrder(@RequestBody OrderForm orderForm) {
-        if (orderForm != null) {
-            return orderService.updateOrder(orderForm);
-        }
-        throw new IllegalArgumentException("Details are missing..");
-    }
-
+    @GetMapping("/{orderId}")
     public OrderForm getOrderById(@PathVariable Integer orderId) {
         if (orderId != null) {
             return orderService.getOrder(orderId);
@@ -39,7 +32,7 @@ public class OrderController {
         throw new IllegalArgumentException("Details are missing..");
     }
 
-    @PutMapping("/{orderId}")
+    @DeleteMapping("/{orderId}")
     public void cancelOrder(@PathVariable Integer orderId) {
         if (orderId != null) {
             orderService.cancelOrder(orderId);

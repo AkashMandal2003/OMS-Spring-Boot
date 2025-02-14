@@ -36,11 +36,19 @@ public class OrderDaoImpl implements OrderDao {
     @Override
     public OrderDetails getOrderById(Integer orderId) {
         try (Session session = sessionFactory.openSession()) {
-            return session.get(OrderDetails.class, orderId);
+            return session.createQuery(
+                            "SELECT o FROM OrderDetails o " +
+                                    "JOIN FETCH o.customer " +
+                                    "JOIN FETCH o.products " +
+                                    "LEFT JOIN FETCH o.payment " +
+                                    "WHERE o.orderId = :orderId", OrderDetails.class)
+                    .setParameter("orderId", orderId)
+                    .uniqueResult();
         } catch (Exception e) {
             throw new PersistenceException("Failed to fetch order details", e);
         }
     }
+
 
     @Override
     public List<OrderDetails> allOrders() {

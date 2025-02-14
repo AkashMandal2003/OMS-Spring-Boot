@@ -7,13 +7,13 @@ import com.jocata.ordermanagementsystem.entities.PaymentDetails;
 import com.jocata.ordermanagementsystem.services.PaymentService;
 import com.jocata.ordermanagementsystem.util.OrderStatus;
 import com.jocata.ordermanagementsystem.util.PaymentStatus;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.logging.Logger;
 
-@Component
+@Service
 public class PaymentServiceImpl implements PaymentService {
 
     private static final Logger logger=Logger.getLogger(PaymentServiceImpl.class.getName());

@@ -3,11 +3,11 @@ package com.jocata.ordermanagementsystem.services.impl;
 import com.jocata.ordermanagementsystem.daos.ProductDao;
 import com.jocata.ordermanagementsystem.entities.ProductDetails;
 import com.jocata.ordermanagementsystem.services.InventoryService;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.logging.Logger;
 
-@Component
+@Service
 public class InventoryServiceImpl implements InventoryService {
 
     private static final Logger logger=Logger.getLogger(InventoryServiceImpl.class.getName());
